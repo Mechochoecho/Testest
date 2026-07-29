@@ -1,0 +1,10 @@
+build/
+pico-sdk/
+*.uf2
+*.elf
+*.bin
+*.hex
+*.map
+__pycache__/
+*.pyc
+.vscode/

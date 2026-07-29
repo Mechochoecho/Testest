@@ -1,0 +1,55 @@
+name: Build firmware.uf2
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    paths:
+      - "src/**"
+      - "CMakeLists.txt"
+      - "pico_sdk_import.cmake"
+      - ".github/workflows/build.yml"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Checkout Pico SDK
+        uses: actions/checkout@v4
+        with:
+          repository: raspberrypi/pico-sdk
+          ref: master
+          path: pico-sdk
+          submodules: recursive
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential
+
+      - name: Configure
+        env:
+          PICO_SDK_PATH: ${{ github.workspace }}/pico-sdk
+        run: |
+          mkdir -p build
+          cmake -S . -B build -DPICO_SDK_PATH="$PICO_SDK_PATH"
+
+      - name: Build
+        run: cmake --build build -j$(nproc)
+
+      - name: Locate firmware.uf2
+        run: |
+          find build -name "*.uf2"
+          cp build/pico_ir_dongle.uf2 firmware.uf2
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware
+          path: firmware.uf2
+          if-no-files-found: error
