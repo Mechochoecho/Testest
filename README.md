@@ -3,42 +3,30 @@
 Raspberry Pi Pico を Android / Windows / Linux 対応の USB 赤外線ドングルにするプロジェクト。
 最優先ターゲットは [android-ir-blaster](https://github.com/iodn/android-ir-blaster) との互換。
 
-## 現在地（v0.1）
+## 現在地（v0.3）
 
-このコミットで入っているのは **土台** です。android-ir-blaster 互換の通信は
-まだ実装していません（理由は下の「未確認事項」参照）。v0.1 でできること：
+android-ir-blaster互換のTX側プロトコルが実装済みです（`UsbProtocolFormatter`の実ソース確認済み、詳細は`docs/PROTOCOL.md`）。デフォルトビルドはこの互換モードで、VID/PIDを`0x10C4`/`0x8468`になりすまし、アプリから送られてくるIRコードをそのまま送信できます。
 
-- Pico が USB Vendor/Bulk デバイスとして列挙される（独自 VID/PID、独自プロトコル）
-- ホスト（PC）から Bulk OUT で Raw IR パターンを送ると 38kHz で IR LED から送信される
-- VS1838B からの受信パルスを Raw タイミングとして Bulk IN 経由でホストに返す
-- `tools/ir_pico_test.py` で Linux/Windows/macOS から動作確認できる（pyusb 使用）
-- GitHub Actions で push するたびに `firmware.uf2` を自動ビルドし、Artifacts からダウンロードできる
+- ✅ USB Vendor/Bulkデバイスとして列挙（互換モード時はandroid-ir-blaster対応VID/PID）
+- ✅ android-ir-blasterからのTXコマンドを受信し、38kHzでIR LEDから送信
+- ✅ 独自プロトコルモード（`IR_DONGLE_COMPAT_MODE=OFF`でビルド）も引き続き利用可能。`tools/ir_pico_test.py`で単体動作確認できる
+- ✅ VS1838Bからの受信をRawタイミングとして取得（独自プロトコル経由のみ、android-ir-blaster互換はまだ）
+- ✅ GitHub Actionsで push するたびに両モードの`.uf2`を自動ビルド（Artifactsに`firmware-compat.uf2`と`firmware-custom.uf2`）
 
 ## ロードマップ
 
 | バージョン | 内容 |
 |---|---|
-| v0.1 | USB列挙 / 独自プロトコルでRaw送信 / CI自動ビルド ← **今ここ** |
+| v0.1 | USB列挙 / 独自プロトコルでRaw送信 / CI自動ビルド |
 | v0.2 | VS1838B受信の安定化、ノイズ除去、複数プロトコルのデコード（NEC等） |
-| v0.3 | android-ir-blaster 実プロトコル互換層（VID/PID偽装 + ハンドシェイク + RLE + 56byte分割） |
-| v0.4 | Learning Mode（受信→プレビュー→保存フロー） |
+| v0.3 | android-ir-blaster実プロトコル互換（TX側） ← **今ここ** |
+| v0.4 | android-ir-blaster Learning Mode互換（RX側）、`UsbIrTransmitter`/`UsbDiscoveryManager`のソース確認が必要 |
 | v1.0 | ドキュメント整備、Windows/Linux単体ツールの配布 |
 
-## 未確認事項（v0.3着手前に必ず潰す）
+## 未確認事項（v0.4着手前に必要）
 
-android-ir-blaster の README（開発者向けメモ）からわかっているのはここまで：
+TX側は確定済みですが、Learning Mode（受信）側のワイヤーフォーマットはまだ未確認です。`UsbIrTransmitter`と`UsbDiscoveryManager`のソースが確認できれば実装できます。
 
-- VID `0x10C4` または `0x045E`、PID `0x8468`、bulk IN/OUT を持つインターフェースが1つ
-- オープン時にハンドシェイク → mark/spaceパターンをRLE圧縮 → 56バイト単位に分割してbulk OUT
-- 送信後、短時間だけbulk INを読みに行く（バックグラウンドリーダー）
-- パターン長が偶数の場合、最後のギャップ長を調整
-
-**ハンドシェイクの実バイト列とRLEの正確なビット/バイトフォーマットは未確認**。これは以下のどちらかで確定させる：
-
-1. `lib/usb/`配下の `UsbProtocolFormatter` の Dartソースを直接読む（一番早い）
-2. 対応ドングル実機がある場合、Wireshark + usbmon でアプリ↔ドングル間の実通信をキャプチャする
-
-確定したら `src/proto_compat.c`（v0.3で追加予定）にそのまま落とし込める設計にしてある。
 
 ## ビルド方法（ローカルでやる場合）
 
@@ -55,7 +43,10 @@ make -j4
 ## ビルド方法（GitHub Actions、CMakeを自分でやりたくない場合）
 
 push するだけで `.github/workflows/build.yml` が自動ビルドします。
-Actions タブ → 該当のワークフロー実行 → Artifacts から `firmware.uf2` をダウンロードするだけ。
+Actions タブ → 該当のワークフロー実行 → Artifacts の `firmware` の中に2つ入っています：
+
+- `firmware-compat.uf2` — android-ir-blaster互換モード（**通常はこちらを使う**）
+- `firmware-custom.uf2` — 独自プロトコルモード（`tools/ir_pico_test.py`での単体動作確認用）
 
 ## ハードウェア接続
 

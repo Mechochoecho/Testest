@@ -32,24 +32,35 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential
 
-      - name: Configure
+      - name: Configure (compat mode / android-ir-blaster互換)
         env:
           PICO_SDK_PATH: ${{ github.workspace }}/pico-sdk
         run: |
-          mkdir -p build
-          cmake -S . -B build -DPICO_SDK_PATH="$PICO_SDK_PATH"
+          mkdir -p build-compat
+          cmake -S . -B build-compat -DPICO_SDK_PATH="$PICO_SDK_PATH" -DIR_DONGLE_COMPAT_MODE=ON
 
-      - name: Build
-        run: cmake --build build -j$(nproc)
+      - name: Build (compat mode)
+        run: cmake --build build-compat -j$(nproc)
 
-      - name: Locate firmware.uf2
+      - name: Configure (custom protocol mode / ir_pico_test.py用)
+        env:
+          PICO_SDK_PATH: ${{ github.workspace }}/pico-sdk
         run: |
-          find build -name "*.uf2"
-          cp build/pico_ir_dongle.uf2 firmware.uf2
+          mkdir -p build-custom
+          cmake -S . -B build-custom -DPICO_SDK_PATH="$PICO_SDK_PATH" -DIR_DONGLE_COMPAT_MODE=OFF
+
+      - name: Build (custom protocol mode)
+        run: cmake --build build-custom -j$(nproc)
+
+      - name: Collect firmware files
+        run: |
+          mkdir -p out
+          cp build-compat/pico_ir_dongle.uf2 out/firmware-compat.uf2
+          cp build-custom/pico_ir_dongle.uf2 out/firmware-custom.uf2
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: firmware
-          path: firmware.uf2
+          path: out/
           if-no-files-found: error

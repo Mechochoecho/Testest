@@ -9,12 +9,21 @@ project(pico_ir_dongle C CXX ASM)
 
 pico_sdk_init()
 
+# ON = android-ir-blaster互換モード（VID/PIDをなりすまし、実プロトコルで通信）
+# OFF = 独自プロトコルモード（tools/ir_pico_test.pyでの動作確認用）
+option(IR_DONGLE_COMPAT_MODE "Build in android-ir-blaster compatible mode" ON)
+
 add_executable(pico_ir_dongle
     src/main.c
     src/usb_descriptors.c
     src/ir_tx.c
     src/ir_rx.c
     src/proto.c
+    src/proto_compat.c
+)
+
+target_compile_definitions(pico_ir_dongle PRIVATE
+    IR_DONGLE_COMPAT_MODE=$<BOOL:${IR_DONGLE_COMPAT_MODE}>
 )
 
 target_include_directories(pico_ir_dongle PRIVATE
