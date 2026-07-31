@@ -3,15 +3,15 @@
 Raspberry Pi Pico を Android / Windows / Linux 対応の USB 赤外線ドングルにするプロジェクト。
 最優先ターゲットは [android-ir-blaster](https://github.com/iodn/android-ir-blaster) との互換。
 
-## 現在地（v0.3）
+## 現在地（v0.4）
 
-android-ir-blaster互換のTX側プロトコルが実装済みです（`UsbProtocolFormatter`の実ソース確認済み、詳細は`docs/PROTOCOL.md`）。デフォルトビルドはこの互換モードで、VID/PIDを`0x10C4`/`0x8468`になりすまし、アプリから送られてくるIRコードをそのまま送信できます。
+android-ir-blaster互換のTX側・Learning Mode（受信）側の両方が実装済みです。`docs/PROTOCOL.md`にプロトコル全容を記載しています。
 
 - ✅ USB Vendor/Bulkデバイスとして列挙（互換モード時はandroid-ir-blaster対応VID/PID）
 - ✅ android-ir-blasterからのTXコマンドを受信し、38kHzでIR LEDから送信
-- ✅ 独自プロトコルモード（`IR_DONGLE_COMPAT_MODE=OFF`でビルド）も引き続き利用可能。`tools/ir_pico_test.py`で単体動作確認できる
-- ✅ VS1838Bからの受信をRawタイミングとして取得（独自プロトコル経由のみ、android-ir-blaster互換はまだ）
-- ✅ GitHub Actionsで push するたびに両モードの`.uf2`を自動ビルド（Artifactsに`firmware-compat.uf2`と`firmware-custom.uf2`）
+- ✅ android-ir-blasterのLearning ModeからPicoの受信機能を呼び出し、学習→アプリでの保存が可能
+- ✅ 独自プロトコルモード（`IR_DONGLE_COMPAT_MODE=OFF`でビルド）も引き続き利用可能
+- ✅ GitHub Actionsで push するたびに両モードの`.uf2`を自動ビルド
 
 ## ロードマップ
 
@@ -19,15 +19,19 @@ android-ir-blaster互換のTX側プロトコルが実装済みです（`UsbProto
 |---|---|
 | v0.1 | USB列挙 / 独自プロトコルでRaw送信 / CI自動ビルド |
 | v0.2 | VS1838B受信の安定化、ノイズ除去、複数プロトコルのデコード（NEC等） |
-| v0.3 | android-ir-blaster実プロトコル互換（TX側） ← **今ここ** |
-| v0.4 | android-ir-blaster Learning Mode互換（RX側）、`UsbIrTransmitter`/`UsbDiscoveryManager`のソース確認が必要 |
-| v1.0 | ドキュメント整備、Windows/Linux単体ツールの配布 |
+| v0.3 | android-ir-blaster実プロトコル互換（TX側） |
+| v0.4 | android-ir-blaster Learning Mode互換（RX側） ← **今ここ** |
+| v1.0 | ドキュメント整備、Windows/Linux単体ツールの配布、実機での動作検証・チューニング |
 
-## 未確認事項（v0.4着手前に必要）
+## 残っている不確実性
 
-TX側は確定済みですが、Learning Mode（受信）側のワイヤーフォーマットはまだ未確認です。`UsbIrTransmitter`と`UsbDiscoveryManager`のソースが確認できれば実装できます。
+このファームウェアは実機での動作確認がまだ済んでいません（開発環境がネットワーク遮断されておりARMクロスビルド・実機テストができないため）。プロトコル自体はKotlinソースから正確に読み取っていますが、以下は未検証です：
 
+- タイミング精度（ソフトウェアループのジッタがLearning Mode側のACK応答速度やIR送受信精度にどう影響するか）
+- `'H'`, `'O'`, `'V'`コマンドの正確な意味（現状ACKのみ返す実装）
+- ハンドシェイクフレームとモードコマンド`'S'`の構造的な曖昧さ（`docs/PROTOCOL.md`参照、実害は無いと想定）
 
+実機で試して問題が出たら、そのログや症状を教えてください。
 ## ビルド方法（ローカルでやる場合）
 
 ```bash
