@@ -60,3 +60,7 @@ void ir_tx_send(const uint16_t *pattern_us, size_t count, uint32_t freq_hz) {
     // 念のため必ず消灯して終了する
     pwm_set_enabled(s_slice, false);
 }
+
+void ir_tx_set_carrier(bool on) {
+    pwm_set_enabled(s_slice, on);
+}

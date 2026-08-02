@@ -47,3 +47,24 @@ pico_add_extra_outputs(pico_ir_dongle)
 # USB経由でのprintfデバッグは無効、UARTのみ（USBはVendorクラス専有のため）
 pico_enable_stdio_usb(pico_ir_dongle 0)
 pico_enable_stdio_uart(pico_ir_dongle 1)
+
+# ---- ハードウェア単体テスト用（USB/プロトコル一切無し。TX点滅+RX検知の両方を確認できる） ----
+add_executable(pico_selftest
+    src/main_selftest.c
+    src/ir_tx.c
+    src/ir_rx.c
+)
+
+target_include_directories(pico_selftest PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/src
+)
+
+target_link_libraries(pico_selftest PRIVATE
+    pico_stdlib
+    hardware_pwm
+    hardware_gpio
+    hardware_irq
+    hardware_timer
+)
+
+pico_add_extra_outputs(pico_selftest)
