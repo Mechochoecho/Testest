@@ -28,6 +28,7 @@ target_compile_definitions(pico_ir_dongle PRIVATE
 
 target_include_directories(pico_ir_dongle PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/src
+    ${CMAKE_CURRENT_LIST_DIR}/src/usb_vendor
 )
 
 target_link_libraries(pico_ir_dongle PRIVATE
