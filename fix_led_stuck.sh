@@ -1,3 +1,10 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# 送信終了後にLEDが点灯したまま固定されるバグの修正
+# 必ず Testest リポジトリのディレクトリの中で実行すること
+set -e
+
+mkdir -p "$(dirname "src/ir_tx.c")"
+cat > "src/ir_tx.c" << 'PICOEOF_src_ir_tx_c_'
 #include "ir_tx.h"
 
 #include "hardware/pwm.h"
@@ -90,3 +97,9 @@ void ir_tx_send(const uint16_t *pattern_us, size_t count, uint32_t freq_hz) {
 void ir_tx_set_carrier(bool on) {
     carrier_active(on);
 }
+PICOEOF_src_ir_tx_c_
+
+git add -A
+git commit -m "fix: IR LED could stay stuck on after transmit (PWM disable level not guaranteed)"
+git push
+echo "修正反映完了"
