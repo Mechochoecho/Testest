@@ -58,6 +58,7 @@ jobs:
           cp build-compat/pico_ir_dongle.uf2 out/firmware-compat.uf2
           cp build-custom/pico_ir_dongle.uf2 out/firmware-custom.uf2
           cp build-compat/pico_selftest.uf2 out/firmware-selftest.uf2
+          cp build-compat/pico_sniffer.uf2 out/firmware-sniffer.uf2
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

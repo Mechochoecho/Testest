@@ -68,3 +68,24 @@ target_link_libraries(pico_selftest PRIVATE
 )
 
 pico_add_extra_outputs(pico_selftest)
+
+# ---- IR解析専用ファームウェア（USB CDCシリアルでRAWデータ+NEC解読結果を表示） ----
+add_executable(pico_sniffer
+    src/main_sniffer.c
+    src/ir_rx.c
+)
+
+target_include_directories(pico_sniffer PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/src
+)
+
+target_link_libraries(pico_sniffer PRIVATE
+    pico_stdlib
+    hardware_gpio
+    hardware_irq
+    hardware_timer
+)
+
+pico_enable_stdio_usb(pico_sniffer 1)
+pico_enable_stdio_uart(pico_sniffer 0)
+pico_add_extra_outputs(pico_sniffer)
