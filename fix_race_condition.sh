@@ -1,3 +1,11 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# 根本原因の修正: タイマー読み取りのレースコンディションでキャプチャが誤って早期終了するバグ
+# (now の取得をクリティカルセクション内に移動し、整数アンダーフローを防止)
+# 必ず Testest リポジトリのディレクトリの中で実行すること
+set -e
+
+mkdir -p "$(dirname "src/ir_rx.c")"
+cat > "src/ir_rx.c" << 'PICOEOF_src_ir_rx_c_'
 #include "ir_rx.h"
 
 #include "hardware/gpio.h"
@@ -113,3 +121,9 @@ size_t ir_rx_read(uint16_t *out, size_t out_max) {
     critical_section_exit(&s_cs);
     return n;
 }
+PICOEOF_src_ir_rx_c_
+
+git add -A
+git commit -m "fix: race condition in ir_rx_poll_timeout caused unsigned underflow, ending captures prematurely"
+git push
+echo "根本原因の修正 反映完了"
