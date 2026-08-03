@@ -69,7 +69,8 @@ int main(void) {
             ir_rx_start(IDLE_TIMEOUT_US);
 
             if (n > 0) {
-                printf("---- 受信 %u エントリ ----\r\n", (unsigned) n);
+                printf("---- 受信 %u エントリ (確定までの無信号時間: %lu us) ----\r\n",
+                       (unsigned) n, (unsigned long) ir_rx_last_idle_gap_us());
                 printf("RAW (us, mark始まり): ");
                 for (size_t i = 0; i < n; i++) {
                     printf("%u%s", (unsigned) buf[i], (i + 1 < n) ? "," : "");

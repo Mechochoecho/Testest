@@ -12,6 +12,7 @@ static volatile bool s_capturing = false;
 static volatile bool s_first_edge_pending = true;
 static volatile uint64_t s_last_edge_us = 0;
 static volatile uint32_t s_idle_timeout_us = 20000;
+static volatile uint32_t s_last_idle_gap_us = 0;
 
 static critical_section_t s_cs;
 
@@ -90,8 +91,13 @@ void ir_rx_poll_timeout(void) {
     uint64_t idle = now - s_last_edge_us;
     if (idle > s_idle_timeout_us && s_count > 0) {
         s_capturing = false;
+        s_last_idle_gap_us = (idle > 0xFFFFFFFFu) ? 0xFFFFFFFFu : (uint32_t) idle;
     }
     critical_section_exit(&s_cs);
+}
+
+uint32_t ir_rx_last_idle_gap_us(void) {
+    return s_last_idle_gap_us;
 }
 
 size_t ir_rx_read(uint16_t *out, size_t out_max) {

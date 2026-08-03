@@ -27,4 +27,8 @@ void ir_rx_poll_timeout(void);
 // 戻り値: 実際に取得できた要素数（out_maxまで）
 size_t ir_rx_read(uint16_t *out, size_t out_max);
 
+// 直前にキャプチャが「タイムアウトで確定」した際、実際に計測された無信号時間(us)。
+// 診断用。ir_rx_stop()による強制停止時は更新されない。
+uint32_t ir_rx_last_idle_gap_us(void);
+
 #endif
