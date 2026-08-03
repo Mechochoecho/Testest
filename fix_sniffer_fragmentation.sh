@@ -1,3 +1,11 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# snifferファームウェア: 信号が細切れになる問題の修正
+# (printf完了を待ってからキャプチャ再開していたため、印字中の信号を取りこぼしていた)
+# 必ず Testest リポジトリのディレクトリの中で実行すること
+set -e
+
+mkdir -p "$(dirname "src/main_sniffer.c")"
+cat > "src/main_sniffer.c" << 'PICOEOF_src_main_sniffer_c_'
 // IR信号解析専用ファームウェア。android-ir-blaster/独自プロトコルとは無関係。
 // USB CDC(シリアル)で受信データをそのままテキスト表示する。
 // Android側は「Serial USB Terminal」等の汎用シリアルターミナルアプリで見られる
@@ -92,3 +100,9 @@ int main(void) {
 
     return 0;
 }
+PICOEOF_src_main_sniffer_c_
+
+git add -A
+git commit -m "fix sniffer: restart capture before printf to avoid losing signal during slow CDC output"
+git push
+echo "修正反映完了"
