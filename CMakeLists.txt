@@ -90,3 +90,26 @@ target_link_libraries(pico_sniffer PRIVATE
 pico_enable_stdio_usb(pico_sniffer 1)
 pico_enable_stdio_uart(pico_sniffer 0)
 pico_add_extra_outputs(pico_sniffer)
+
+# ---- 汎用IR CLIツール（USB CDCシリアルで rx/tx/nec コマンドを直接操作） ----
+add_executable(pico_cli
+    src/main_cli.c
+    src/ir_tx.c
+    src/ir_rx.c
+)
+
+target_include_directories(pico_cli PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/src
+)
+
+target_link_libraries(pico_cli PRIVATE
+    pico_stdlib
+    hardware_pwm
+    hardware_gpio
+    hardware_irq
+    hardware_timer
+)
+
+pico_enable_stdio_usb(pico_cli 1)
+pico_enable_stdio_uart(pico_cli 0)
+pico_add_extra_outputs(pico_cli)
