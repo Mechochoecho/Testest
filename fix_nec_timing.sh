@@ -1,3 +1,10 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# NECエンコードのタイミング定数を実測較正値に修正、ビット順もdecodeと対称に修正
+# 必ず Testest リポジトリのディレクトリの中で実行すること
+set -e
+
+mkdir -p "$(dirname "src/main_cli.c")"
+cat > "src/main_cli.c" << 'PICOEOF_src_main_cli_c_'
 // 自由に送受信・解析ができる、シリアル(USB CDC)ベースの汎用IRツール。
 // android-ir-blasterのプロトコルとは無関係。Serial USB Terminal等から
 // テキストコマンドで直接操作する。
@@ -319,3 +326,9 @@ int main(void) {
 
     return 0;
 }
+PICOEOF_src_main_cli_c_
+
+git add -A
+git commit -m "cli: calibrate NEC encode timing to measured values, fix default bit order to match decoder"
+git push
+echo "NEC較正修正 反映完了"
